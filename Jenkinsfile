@@ -14,7 +14,11 @@ pipeline {
       steps {
         bat '''
         echo Deleting existing scratch org if present...
-        "C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org delete scratch --target-org scratchOrg --no-prompt || echo "No existing scratch org to delete"
+        "C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org delete scratch --target-org scratchOrg --no-prompt
+        IF %ERRORLEVEL% NEQ 0 (
+          echo No existing scratch org to delete.
+          exit /b 0
+        )
         '''
       }
     }
@@ -32,10 +36,10 @@ pipeline {
     }
 
     stage('Run Apex Tests') {
-  steps {
-    bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg'
-  }
-}
+      steps {
+        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg'
+      }
+    }
 
     stage('Delete Scratch Org') {
       steps {
