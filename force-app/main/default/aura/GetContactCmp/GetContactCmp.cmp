@@ -1,3 +1,0 @@
-<aura:component controller="GetContactController">
-    <aura:handler name="init" value="{!this}" action="{!c.getContactData}"/>
-</aura:component>

@@ -1,4 +1,0 @@
-({
-	add : function(component) {
-	}
-})
