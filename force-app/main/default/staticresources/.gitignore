@@ -1,9 +1,0 @@
-# Salesforce and Node
-*.log
-node_modules/
-coverage/
-.sfdx/
-.vscode/
-.env
-test-results/
-.DS_Store

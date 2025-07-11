@@ -1,0 +1,7 @@
+<aura:component >
+    
+    <lightning:input type="number" aura:id="num1" label="Enter 1st Number" />
+    <lightning:input type="number" aura:id="num2" label="Enter 2nd Number" />
+    <lightning:input type="button" value="Add" />
+    
+</aura:component>

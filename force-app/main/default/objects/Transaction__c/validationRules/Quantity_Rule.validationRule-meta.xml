@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quantity_Rule</fullName>
+    <active>true</active>
+    <description>The quantity ordered exceeds the available stock. Please adjust your order.</description>
+    <errorConditionFormula>Quantity__c  &gt;   Item__r.Quantity__c &amp;&amp; ISPICKVAL(Type__c, &apos;Sale&apos;)</errorConditionFormula>
+    <errorDisplayField>Quantity__c</errorDisplayField>
+    <errorMessage>The quantity ordered exceeds the available stock. Please adjust your order.</errorMessage>
+</ValidationRule>
