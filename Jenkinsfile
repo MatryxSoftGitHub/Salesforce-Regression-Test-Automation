@@ -24,7 +24,8 @@ pipeline {
 
     stage('Run Apex Tests') {
       steps {
-        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --target-org scratchOrg --test-level RunLocalTests --output-dir test-results --result-format junit'
+        // Correct order: test-level BEFORE target-org
+        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --test-level RunLocalTests --target-org scratchOrg --output-dir test-results --result-format junit'
       }
     }
 
@@ -37,7 +38,8 @@ pipeline {
 
   post {
     always {
-      junit 'test-results/test-result.xml'
+      // Correct JUnit pattern: It must match generated filename, e.g., ApexTestResult.xml
+      junit 'test-results/*.xml'
     }
   }
 }
