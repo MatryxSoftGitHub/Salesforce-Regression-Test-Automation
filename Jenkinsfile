@@ -6,12 +6,12 @@ pipeline {
     SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"' // Absolute path to sf CLI
   }
 
-  stages {
-    stage('Authorize Dev Hub') {
-      steps {
-        bat "${env.SF_CLI} org login sfdx-url --sfdx-url-file %SFDX_AUTH_URL% --set-default-dev-hub"
-      }
-    }
+  stage('Authorize Dev Hub') {
+  steps {
+    bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org login sfdx-url --sfdx-url "%SFDX_AUTH_URL%" --set-default-dev-hub'
+  }
+}
+
 
     stage('Create Scratch Org') {
       steps {
