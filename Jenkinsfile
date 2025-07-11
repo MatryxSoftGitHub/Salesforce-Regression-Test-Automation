@@ -10,6 +10,15 @@ pipeline {
       }
     }
 
+    stage('Pre-clean Scratch Org') {
+      steps {
+        bat '''
+        echo Deleting existing scratch org if present...
+        "C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org delete scratch --target-org scratchOrg --no-prompt || echo "No existing scratch org to delete"
+        '''
+      }
+    }
+
     stage('Create Scratch Org') {
       steps {
         bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org create scratch --definition-file config\\project-scratch-def.json --alias scratchOrg --duration-days 1 --set-default'
@@ -24,7 +33,6 @@ pipeline {
 
     stage('Run Apex Tests') {
       steps {
-        // Correct order: test-level BEFORE target-org
         bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --test-level RunLocalTests --target-org scratchOrg --output-dir test-results --result-format junit'
       }
     }
@@ -38,7 +46,6 @@ pipeline {
 
   post {
     always {
-      // Correct JUnit pattern: It must match generated filename, e.g., ApexTestResult.xml
       junit 'test-results/*.xml'
     }
   }
