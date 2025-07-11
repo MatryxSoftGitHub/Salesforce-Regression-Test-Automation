@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Authorize Dev Hub') {
       steps {
-        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org login sfdx-url --sfdx-url "%SFDX_AUTH_URL%" --set-default-dev-hub'
+        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org login sfdx-url --sfdx-url-file "%SFDX_AUTH_URL%" --set-default-dev-hub'
       }
     }
 
