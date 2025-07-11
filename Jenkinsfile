@@ -10,18 +10,18 @@ pipeline {
       }
     }
 
-    stage('Pre-clean Scratch Org') {
-      steps {
-        bat '''
-        echo Deleting existing scratch org if present...
-        "C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org delete scratch --target-org scratchOrg --no-prompt
-        IF %ERRORLEVEL% NEQ 0 (
-          echo No existing scratch org to delete.
-          exit /b 0
-        )
-        '''
-      }
-    }
+    // stage('Pre-clean Scratch Org') {
+    //   steps {
+    //     bat '''
+    //     echo Deleting existing scratch org if present...
+    //     "C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org delete scratch --target-org scratchOrg --no-prompt
+    //     IF %ERRORLEVEL% NEQ 0 (
+    //       echo No existing scratch org to delete.
+    //       exit /b 0
+    //     )
+    //     '''
+    //   }
+    // }
 
     stage('Create Scratch Org') {
       steps {
