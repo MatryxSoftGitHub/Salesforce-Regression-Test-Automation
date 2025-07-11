@@ -32,10 +32,10 @@ pipeline {
     }
 
     stage('Run Apex Tests') {
-      steps {
-        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --test-level RunLocalTests --target-org scratchOrg --output-dir test-results --result-format junit'
-      }
-    }
+  steps {
+    bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg'
+  }
+}
 
     stage('Delete Scratch Org') {
       steps {
