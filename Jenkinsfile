@@ -1,14 +1,12 @@
 pipeline {
   agent any
 
-  environment {
-    SFDX_AUTH_URL = credentials('SFDX_AUTH_URL')
-  }
-
   stages {
     stage('Authorize Dev Hub') {
       steps {
-        bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org login sfdx-url --sfdx-url-file "%SFDX_AUTH_URL%" --set-default-dev-hub'
+        withCredentials([file(credentialsId: 'SFDX_AUTH_URL', variable: 'SFDX_AUTH_FILE')]) {
+          bat '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd" org login sfdx-url --sfdx-url-file "%SFDX_AUTH_FILE%" --set-default-dev-hub'
+        }
       }
     }
 
