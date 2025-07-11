@@ -3,36 +3,37 @@ pipeline {
 
   environment {
     SFDX_AUTH_URL = credentials('SFDX_AUTH_URL')
+    SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"' // Absolute path to sf CLI
   }
 
   stages {
     stage('Authorize Dev Hub') {
       steps {
-        bat 'sf org login sfdx-url --sfdx-url-file %SFDX_AUTH_URL% --set-default-dev-hub'
+        bat "${env.SF_CLI} org login sfdx-url --sfdx-url-file %SFDX_AUTH_URL% --set-default-dev-hub"
       }
     }
 
     stage('Create Scratch Org') {
       steps {
-        bat 'sf org create scratch --definition-file config/project-scratch-def.json --alias scratchOrg --duration-days 1 --set-default'
+        bat "${env.SF_CLI} org create scratch --definition-file config\\project-scratch-def.json --alias scratchOrg --duration-days 1 --set-default"
       }
     }
 
     stage('Deploy Metadata') {
       steps {
-        bat 'sf project deploy start --target-org scratchOrg --ignore-conflicts'
+        bat "${env.SF_CLI} project deploy start --target-org scratchOrg --ignore-conflicts"
       }
     }
 
     stage('Run Apex Tests') {
       steps {
-        bat 'sf apex run test --target-org scratchOrg --output-dir test-results --result-format junit'
+        bat "${env.SF_CLI} apex run test --target-org scratchOrg --output-dir test-results --result-format junit"
       }
     }
 
     stage('Delete Scratch Org') {
       steps {
-        bat 'sf org delete scratch --target-org scratchOrg --no-prompt'
+        bat "${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt"
       }
     }
   }
