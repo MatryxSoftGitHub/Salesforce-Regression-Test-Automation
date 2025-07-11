@@ -1,0 +1,7 @@
+<apex:page standardController="Contact" standardStylesheets="true">
+    {! contact.firstname}
+    
+    {! contact.lastname}
+    {! contact.email}
+    
+</apex:page>
