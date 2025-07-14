@@ -6,6 +6,13 @@ pipeline {
   }
 
   stages {
+    stage('Checkout SCM') {
+      steps {
+        echo '📥 Checking out code from GitHub...'
+        checkout scm
+      }
+    }
+
     stage('Authorize Dev Hub') {
       steps {
         echo '🔐 Authorizing Dev Hub...'
@@ -19,7 +26,11 @@ pipeline {
       steps {
         echo '🧹 Cleaning up existing scratch org if any...'
         bat """
-        ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt || exit /b 0
+        ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+        IF %ERRORLEVEL% NEQ 0 (
+          echo No existing scratch org to delete.
+          exit /b 0
+        )
         """
       }
     }
@@ -40,7 +51,7 @@ pipeline {
 
     stage('Run Apex Tests') {
       steps {
-        echo '🧪 Running Apex tests...'
+        echo '🧪 Running Apex tests and saving JUnit results...'
         bat "${env.SF_CLI} apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg"
       }
     }
@@ -50,11 +61,15 @@ pipeline {
     always {
       echo '🧹 Post-cleanup: Deleting scratch org...'
       bat """
-      ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt || exit /b 0
+      ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+      IF %ERRORLEVEL% NEQ 0 (
+        echo Scratch org already deleted or not found.
+        exit /b 0
+      )
       """
 
-      echo '📄 Publishing test results...'
-      junit 'test-results/*.xml'
+      echo '📄 Publishing Apex test results...'
+      junit 'test-results/test-result-*.xml'
     }
   }
 }
