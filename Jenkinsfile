@@ -22,18 +22,18 @@ pipeline {
       }
     }
 
-    stage('Pre-clean Scratch Org') {
-      steps {
-        echo '🧹 Cleaning up existing scratch org if any...'
-        bat """
-        ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
-        IF %ERRORLEVEL% NEQ 0 (
-          echo No existing scratch org to delete.
-          exit /b 0
-        )
-        """
-      }
-    }
+    // stage('Pre-clean Scratch Org') {
+    //   steps {
+    //     echo '🧹 Cleaning up existing scratch org if any...'
+    //     bat """
+    //     ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+    //     IF %ERRORLEVEL% NEQ 0 (
+    //       echo No existing scratch org to delete.
+    //       exit /b 0
+    //     )
+    //     """
+    //   }
+    // }
 
     stage('Create Scratch Org') {
       steps {
