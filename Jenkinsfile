@@ -1,5 +1,6 @@
 pipeline {
-  agent any
+    agent {
+    label 'windows'
 
   environment {
     SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"'
