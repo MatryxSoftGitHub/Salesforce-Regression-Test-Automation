@@ -1,6 +1,7 @@
 pipeline {
-    agent {
-    label 'Built-In Node'
+  agent {
+    label 'windows'  // Ensure this is the label of your Windows Jenkins agent
+  }
 
   environment {
     SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"'
@@ -22,19 +23,6 @@ pipeline {
         }
       }
     }
-
-    // stage('Pre-clean Scratch Org') {
-    //   steps {
-    //     echo '🧹 Cleaning up existing scratch org if any...'
-    //     bat """
-    //     ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
-    //     IF %ERRORLEVEL% NEQ 0 (
-    //       echo No existing scratch org to delete.
-    //       exit /b 0
-    //     )
-    //     """
-    //   }
-    // }
 
     stage('Create Scratch Org') {
       steps {
@@ -60,18 +48,20 @@ pipeline {
 
   post {
     always {
-      echo '🧹 Post-cleanup: Deleting scratch org...'
-      bat """
-      ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
-      IF %ERRORLEVEL% NEQ 0 (
-        echo Scratch org already deleted or not found.
-        exit /b 0
-      )
-      """
+      script {
+        echo '🧹 Post-cleanup: Deleting scratch org...'
+        def deleteCommand = """
+          ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+          IF %ERRORLEVEL% NEQ 0 (
+            echo Scratch org already deleted or not found.
+            exit /b 0
+          )
+        """
+        bat script: deleteCommand, label: 'Delete Scratch Org'
+      }
 
       echo '📄 Publishing Apex test results...'
       junit 'test-results/test-result-*.xml'
     }
   }
 }
-}    
