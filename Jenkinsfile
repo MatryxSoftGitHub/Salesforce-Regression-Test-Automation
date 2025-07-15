@@ -1,9 +1,11 @@
 pipeline {
-  agent { label 'windows' }
+  agent any
   stages {
-    stage('Test CMD') {
+    stage('Check OS') {
       steps {
-        bat 'echo Hello from CMD'
+        script {
+          println "OS: ${System.getProperty('os.name')}"
+        }
       }
     }
   }
