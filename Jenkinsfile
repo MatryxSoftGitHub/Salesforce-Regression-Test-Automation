@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    SF_CLI = 'C:\\Program Files (x86)\\sf\\bin\\sf.cmd'
+    SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"'
   }
 
   stages {
@@ -17,37 +17,42 @@ pipeline {
       steps {
         echo '🔐 Authorizing Dev Hub...'
         withCredentials([file(credentialsId: 'SFDX_AUTH_FILE', variable: 'SFDX_AUTH_FILE')]) {
-          bat """
-          CALL "${env.SF_CLI}" org login sfdx-url --sfdx-url-file "%SFDX_AUTH_FILE%" --set-default-dev-hub
-          """
+          bat "${env.SF_CLI} org login sfdx-url --sfdx-url-file \"%SFDX_AUTH_FILE%\" --set-default-dev-hub"
         }
       }
     }
 
+    // stage('Pre-clean Scratch Org') {
+    //   steps {
+    //     echo '🧹 Cleaning up existing scratch org if any...'
+    //     bat """
+    //     ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+    //     IF %ERRORLEVEL% NEQ 0 (
+    //       echo No existing scratch org to delete.
+    //       exit /b 0
+    //     )
+    //     """
+    //   }
+    // }
+
     stage('Create Scratch Org') {
       steps {
         echo '🏗️ Creating new scratch org...'
-        bat """
-        CALL "${env.SF_CLI}" org create scratch --definition-file config\\project-scratch-def.json --alias scratchOrg --duration-days 1 --set-default
-        """
+        bat "${env.SF_CLI} org create scratch --definition-file config\\project-scratch-def.json --alias scratchOrg --duration-days 1 --set-default"
       }
     }
 
     stage('Deploy Metadata') {
       steps {
         echo '🚀 Deploying metadata to scratch org...'
-        bat """
-        CALL "${env.SF_CLI}" project deploy start --target-org scratchOrg --ignore-conflicts
-        """
+        bat "${env.SF_CLI} project deploy start --target-org scratchOrg --ignore-conflicts"
       }
     }
 
     stage('Run Apex Tests') {
       steps {
         echo '🧪 Running Apex tests and saving JUnit results...'
-        bat """
-        CALL "${env.SF_CLI}" apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg
-        """
+        bat "${env.SF_CLI} apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg"
       }
     }
   }
@@ -55,15 +60,13 @@ pipeline {
   post {
     always {
       echo '🧹 Post-cleanup: Deleting scratch org...'
-      catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-        bat """
-        CALL "${env.SF_CLI}" org delete scratch --target-org scratchOrg --no-prompt
-        IF %ERRORLEVEL% NEQ 0 (
-          echo Scratch org already deleted or not found.
-          exit /b 0
-        )
-        """
-      }
+      bat """
+      ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+      IF %ERRORLEVEL% NEQ 0 (
+        echo Scratch org already deleted or not found.
+        exit /b 0
+      )
+      """
 
       echo '📄 Publishing Apex test results...'
       junit 'test-results/test-result-*.xml'
