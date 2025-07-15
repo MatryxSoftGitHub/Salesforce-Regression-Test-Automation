@@ -1,6 +1,6 @@
 pipeline {
     agent {
-    label 'windows'
+    label 'Built-In Node'
 
   environment {
     SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"'
