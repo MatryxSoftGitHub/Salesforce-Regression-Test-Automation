@@ -46,18 +46,19 @@ pipeline {
     }
   }
 
-  post {
-    always {
-      script {
-        echo '🧹 Post-cleanup: Deleting scratch org...'
-        def deleteCommand = """
-          ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
-          IF %ERRORLEVEL% NEQ 0 (
-            echo Scratch org already deleted or not found.
-            exit /b 0
-          )
+post {
+  always {
+    // Run this on the same agent context
+    script {
+      node('windows') {
+        echo '🧹 Deleting scratch org...'
+        bat """
+        ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+        IF %ERRORLEVEL% NEQ 0 (
+          echo Scratch org already deleted or not found.
+          exit /b 0
+        )
         """
-        bat script: deleteCommand, label: 'Delete Scratch Org'
       }
 
       echo '📄 Publishing Apex test results...'
