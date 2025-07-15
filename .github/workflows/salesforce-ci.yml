@@ -18,32 +18,31 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: ⚙️ Manually Install Salesforce CLI on Windows
+      - name: ⚙️ Install Salesforce CLI (via Chocolatey)
         run: |
-          Invoke-WebRequest -Uri https://developer.salesforce.com/media/salesforce-cli/sfdx-windows-x64.exe -OutFile sfdx-windows-x64.exe
-          Start-Process .\sfdx-windows-x64.exe -Wait -ArgumentList "/quiet /norestart"
+          choco install salesforcecli -y
         shell: powershell
 
       - name: 🔐 Authorize Dev Hub
         run: |
           Set-Content -Path auth.txt -Value "$env:SFDX_AUTH_URL"
-          sf org login sfdx-url --sfdx-url-file auth.txt --set-default-dev-hub --alias DevHub
+          sfdx auth:sfdxurl:store --sfdxurlfile auth.txt --setdefaultdevhubusername --setalias DevHub
         shell: powershell
 
       - name: 🏗️ Create Scratch Org
         run: |
-          sf org create scratch --definition-file config/project-scratch-def.json --alias $env:SF_ENV_ALIAS --duration-days 1 --set-default
+          sfdx force:org:create --definitionfile config/project-scratch-def.json --alias $env:SF_ENV_ALIAS --durationdays 1 --setdefaultusername
         shell: powershell
 
       - name: 🚀 Deploy Metadata
         run: |
-          sf project deploy start --target-org $env:SF_ENV_ALIAS --ignore-conflicts
+          sfdx force:source:deploy --targetusername $env:SF_ENV_ALIAS --sourcepath force-app
         shell: powershell
 
       - name: 🧪 Run Apex Tests
         run: |
           New-Item -ItemType Directory -Path test-results -Force
-          sf apex run test --target-org $env:SF_ENV_ALIAS --test-level RunLocalTests --result-format junit --output-dir test-results
+          sfdx force:apex:test:run --targetusername $env:SF_ENV_ALIAS --testlevel RunLocalTests --resultformat junit --outputdir test-results --wait 10
         shell: powershell
 
       - name: 📄 Publish Test Report
@@ -55,5 +54,5 @@ jobs:
       - name: 🧹 Delete Scratch Org
         if: always()
         run: |
-          sf org delete scratch --target-org $env:SF_ENV_ALIAS --no-prompt
+          sfdx force:org:delete --targetusername $env:SF_ENV_ALIAS --noprompt
         shell: powershell
