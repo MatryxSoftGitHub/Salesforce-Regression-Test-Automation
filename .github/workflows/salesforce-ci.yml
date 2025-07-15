@@ -1,0 +1,51 @@
+name: Salesforce CI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  salesforce-ci:
+    runs-on: ubuntu-latest
+
+    env:
+      SF_ENV_ALIAS: scratchOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+
+    steps:
+      - name: 🧾 Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Setup Salesforce CLI
+        uses: sfdx-actions/setup-sfdx@v1
+
+      - name: 🔐 Authorize Dev Hub
+        run: |
+          echo "$SFDX_AUTH_URL" > ./auth.txt
+          sfdx auth:sfdxurl:store --sfdxurlfile ./auth.txt --setdefaultdevhubusername --setalias DevHub
+
+      - name: 🏗️ Create Scratch Org
+        run: |
+          sfdx org:create:scratch --definition-file config/project-scratch-def.json --alias $SF_ENV_ALIAS --duration-days 1 --set-default
+
+      - name: 🚀 Deploy Metadata
+        run: |
+          sfdx project deploy start --target-org $SF_ENV_ALIAS --ignore-conflicts
+
+      - name: 🧪 Run Apex Tests
+        run: |
+          mkdir -p test-results
+          sfdx apex run test --target-org $SF_ENV_ALIAS --test-level RunLocalTests --result-format junit --output-dir test-results
+
+      - name: 📄 Publish Test Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: apex-test-results
+          path: test-results
+
+      - name: 🧹 Delete Scratch Org
+        if: always()
+        run: |
+          sfdx org:delete:scratch --target-org $SF_ENV_ALIAS --no-prompt
