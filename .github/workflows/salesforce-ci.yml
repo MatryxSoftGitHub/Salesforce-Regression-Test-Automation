@@ -1,4 +1,4 @@
-name: Salesforce CI
+name: Salesforce CI on Windows
 
 on:
   push:
@@ -15,38 +15,36 @@ jobs:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
 
     steps:
-      - name: 🧾 Checkout Repo
+      - name: 🧾 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 🧰 Install wget (required for SFDX CLI setup)
-        shell: powershell
+      - name: ⚙️ Manually Install Salesforce CLI on Windows
         run: |
-          choco install wget -y
-
-      - name: ⚙️ Setup Salesforce CLI
-        uses: sfdx-actions/setup-sfdx@v1
+          Invoke-WebRequest -Uri https://developer.salesforce.com/media/salesforce-cli/sfdx-windows-x64.exe -OutFile sfdx-windows-x64.exe
+          Start-Process .\sfdx-windows-x64.exe -Wait -ArgumentList "/quiet /norestart"
+        shell: powershell
 
       - name: 🔐 Authorize Dev Hub
-        shell: powershell
         run: |
           Set-Content -Path auth.txt -Value "$env:SFDX_AUTH_URL"
-          sfdx auth:sfdxurl:store --sfdxurlfile auth.txt --setdefaultdevhubusername --setalias DevHub
+          sf org login sfdx-url --sfdx-url-file auth.txt --set-default-dev-hub --alias DevHub
+        shell: powershell
 
       - name: 🏗️ Create Scratch Org
-        shell: powershell
         run: |
-          sfdx org create scratch --definition-file config/project-scratch-def.json --alias $env:SF_ENV_ALIAS --duration-days 1 --set-default
+          sf org create scratch --definition-file config/project-scratch-def.json --alias $env:SF_ENV_ALIAS --duration-days 1 --set-default
+        shell: powershell
 
       - name: 🚀 Deploy Metadata
-        shell: powershell
         run: |
-          sfdx project deploy start --target-org $env:SF_ENV_ALIAS --ignore-conflicts
+          sf project deploy start --target-org $env:SF_ENV_ALIAS --ignore-conflicts
+        shell: powershell
 
       - name: 🧪 Run Apex Tests
-        shell: powershell
         run: |
           New-Item -ItemType Directory -Path test-results -Force
-          sfdx apex run test --target-org $env:SF_ENV_ALIAS --test-level RunLocalTests --result-format junit --output-dir test-results
+          sf apex run test --target-org $env:SF_ENV_ALIAS --test-level RunLocalTests --result-format junit --output-dir test-results
+        shell: powershell
 
       - name: 📄 Publish Test Report
         uses: actions/upload-artifact@v4
@@ -56,6 +54,6 @@ jobs:
 
       - name: 🧹 Delete Scratch Org
         if: always()
-        shell: powershell
         run: |
-          sfdx org delete scratch --target-org $env:SF_ENV_ALIAS --no-prompt
+          sf org delete scratch --target-org $env:SF_ENV_ALIAS --no-prompt
+        shell: powershell
