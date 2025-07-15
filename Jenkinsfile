@@ -46,20 +46,16 @@ pipeline {
     }
   }
 
-post {
-  always {
-    // Run this on the same agent context
-    script {
-      node('windows') {
-        echo '🧹 Deleting scratch org...'
-        bat """
-        ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
-        IF %ERRORLEVEL% NEQ 0 (
-          echo Scratch org already deleted or not found.
-          exit /b 0
-        )
-        """
-      }
+  post {
+    always {
+      echo '🧹 Deleting scratch org...'
+      bat """
+      ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
+      IF %ERRORLEVEL% NEQ 0 (
+        echo Scratch org already deleted or not found.
+        exit /b 0
+      )
+      """
 
       echo '📄 Publishing Apex test results...'
       junit 'test-results/test-result-*.xml'
