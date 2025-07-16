@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    SF_CLI = '"C:\\Program Files\\Salesforce CLI\\bin\\sf.cmd"' // Update if your path is different
+    SF_CLI = '"C:\Program Files\sf\bin\sf.cmd"' // Update if your path is different
     SF_ENV_ALIAS = 'scratchOrg'
   }
 
