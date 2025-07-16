@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"'  // ✅ Verified path
+    SF_CLI = '"C:\\Program Files\\sf\\bin\\sf.cmd"'  // ✅ Verified path
     SF_ENV_ALIAS = 'scratchOrg'
   }
 
