@@ -1,10 +1,9 @@
 pipeline {
-  agent {
-    label 'windows'  // Ensure this is the label of your Windows Jenkins agent
-  }
+  agent any
 
   environment {
-    SF_CLI = '"C:\\Program Files (x86)\\sf\\bin\\sf.cmd"'
+    SF_CLI = 'sf'  // Assumes sf is in the system PATH
+    SF_ENV_ALIAS = 'scratchOrg'
   }
 
   stages {
@@ -19,7 +18,10 @@ pipeline {
       steps {
         echo '🔐 Authorizing Dev Hub...'
         withCredentials([file(credentialsId: 'SFDX_AUTH_FILE', variable: 'SFDX_AUTH_FILE')]) {
-          bat "${env.SF_CLI} org login sfdx-url --sfdx-url-file \"%SFDX_AUTH_FILE%\" --set-default-dev-hub"
+          sh '''
+            echo "Authorizing with Dev Hub..."
+            $SF_CLI org login sfdx-url --sfdx-url-file "$SFDX_AUTH_FILE" --set-default-dev-hub
+          '''
         }
       }
     }
@@ -27,21 +29,28 @@ pipeline {
     stage('Create Scratch Org') {
       steps {
         echo '🏗️ Creating new scratch org...'
-        bat "${env.SF_CLI} org create scratch --definition-file config\\project-scratch-def.json --alias scratchOrg --duration-days 1 --set-default"
+        sh '''
+          $SF_CLI org create scratch --definition-file config/project-scratch-def.json --alias $SF_ENV_ALIAS --duration-days 1 --set-default
+        '''
       }
     }
 
     stage('Deploy Metadata') {
       steps {
         echo '🚀 Deploying metadata to scratch org...'
-        bat "${env.SF_CLI} project deploy start --target-org scratchOrg --ignore-conflicts"
+        sh '''
+          $SF_CLI project deploy start --target-org $SF_ENV_ALIAS --ignore-conflicts
+        '''
       }
     }
 
     stage('Run Apex Tests') {
       steps {
         echo '🧪 Running Apex tests and saving JUnit results...'
-        bat "${env.SF_CLI} apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org scratchOrg"
+        sh '''
+          mkdir -p test-results
+          $SF_CLI apex run test --test-level RunLocalTests --output-dir test-results --result-format junit --target-org $SF_ENV_ALIAS
+        '''
       }
     }
   }
@@ -49,13 +58,9 @@ pipeline {
   post {
     always {
       echo '🧹 Deleting scratch org...'
-      bat """
-      ${env.SF_CLI} org delete scratch --target-org scratchOrg --no-prompt
-      IF %ERRORLEVEL% NEQ 0 (
-        echo Scratch org already deleted or not found.
-        exit /b 0
-      )
-      """
+      sh '''
+        $SF_CLI org delete scratch --target-org $SF_ENV_ALIAS --no-prompt || true
+      '''
 
       echo '📄 Publishing Apex test results...'
       junit 'test-results/test-result-*.xml'
